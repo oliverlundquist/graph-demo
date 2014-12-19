@@ -259,37 +259,55 @@
             var padding       = 30;
             var refreshRateMs = 1000;
             var svgContainer  = d3.select("#holder").append("svg").attr("width", width).attr("height", height);
-            var xAxisScale    = d3.scale.linear().domain([0, 100]).range([padding, (width-padding)]);
-            var xAxis         = d3.svg.axis().scale(xAxisScale).orient("bottom");
-            var xAxisGroup    = svgContainer.append("g").attr("class", "axis").attr("transform", "translate(0, " + (height-padding) + ")").call(xAxis);
-            var yAxisScale    = d3.scale.linear().domain([0, 100]).range([(height-padding), padding]);
-            var yAxis         = d3.svg.axis().scale(yAxisScale).orient("left");
-            var yAxisGroup    = svgContainer.append("g").attr("class", "axis").attr("transform", "translate(" + padding + " ,0)").call(yAxis);
-            // var lineData     = [{ "x": 0,   "y": 5  },
-            //                     { "x": 5,   "y": 20 },
-            //                     { "x": 10,  "y": 10 },
-            //                     { "x": 15,  "y": 40 },
-            //                     { "x": 20,  "y": 5  },
-            //                     { "x": 25,  "y": 60 },
-            //                     { "x": 30,  "y": 20 },
-            //                     { "x": 35,  "y": 10 },
-            //                     { "x": 40,  "y": 40 },
-            //                     { "x": 45,  "y": 5  },
-            //                     { "x": 50,  "y": 5  },
-            //                     { "x": 55,  "y": 20 },
-            //                     { "x": 60,  "y": 10 },
-            //                     { "x": 65,  "y": 40 },
-            //                     { "x": 70,  "y": 5  },
-            //                     { "x": 75,  "y": 60 },
-            //                     { "x": 80,  "y": 20 },
-            //                     { "x": 85,  "y": 10 },
-            //                     { "x": 90,  "y": 40 },
-            //                     { "x": 95,  "y": 5  },
-            //                     { "x": 100, "y": 60 }];
-            //generate 100 random elements
-            var lineData = []; for(var i=0; i<100; i++) { lineData.push({ x: i, y: Math.floor((Math.random() * 100) + 1) }); }
-            var lineFunction = d3.svg.line().x(function (d) { return xAxisScale(d.x); }).y(function (d) { return yAxisScale(d.y); }).interpolate("linear");
-            var lineGraph = svgContainer.append("path").attr("d", lineFunction(lineData)).attr("id", "mainLine").attr("stroke", "steelblue").attr("stroke-width", 2).attr("fill", "none");
+            var lineData     = [{ x:  0, y: 5  },
+                                { x:  1, y: 20 },
+                                { x:  2, y: 10 },
+                                { x:  3, y: 40 },
+                                { x:  4, y: 5  },
+                                { x:  5, y: 60 },
+                                { x:  6, y: 20 },
+                                { x:  7, y: 10 },
+                                { x:  8, y: 40 },
+                                { x:  9, y: 5  },
+                                { x: 10, y: 5  },
+                                { x: 11, y: 20 },
+                                { x: 12, y: 10 },
+                                { x: 13, y: 40 },
+                                { x: 14, y: 5  },
+                                { x: 15, y: 60 },
+                                { x: 16, y: 20 },
+                                { x: 17, y: 10 },
+                                { x: 18, y: 40 },
+                                { x: 19, y: 5  },
+                                { x: 20, y: 60 }];
+
+            var yMax = d3.max(lineData, function (d) { return d.y });
+            var xAxisScale = d3.scale.ordinal().rangeRoundBands([padding, (width-padding)], 0.1).domain(d3.range(lineData.length));
+            var yAxisScale = d3.scale.linear().range([(height-padding), padding]).domain([0, yMax]);
+            var xAxis = d3.svg.axis().scale(xAxisScale);
+            svgContainer.append('g')
+                .attr("class", "axis")
+                .attr('transform', 'translate(0, ' + (height-padding) + ')')
+                .call(xAxis);
+            var yAxis = d3.svg.axis().orient('left').scale(yAxisScale).ticks(5); //ticks is not working?
+            svgContainer.append('g')
+                .attr("class", "axis yaxis")
+                .attr('transform', 'translate(' + padding + ', 0)')
+                .call(yAxis);
+            //
+
+            //append axes
+            svgContainer.selectAll('rect')
+                        .data(lineData)
+                        .enter()
+                        .append('rect')
+                        .attr('class', 'mainBars')
+                        .attr('x', function (d) { return xAxisScale(d.x); } )
+                        .attr('y', function (d) { return yAxisScale(d.y); } )
+                        .attr('width', xAxisScale.rangeBand())
+                        .attr('height', function (d) { return ((height-padding)-yAxisScale(d.y)); } )
+                        .attr('fill', 'steelblue');
+            //
 
             function startTimer() {
                 timer = setTimeout(repaint, refreshRateMs);
@@ -301,17 +319,24 @@
 
             function repaint() {
 
-                var yRandom = Math.floor((Math.random() * 100) + 1);
-                lineData.splice(0, 1);
-                $(lineData).each(function (i, obj) { obj.x -= 1; });
-                lineData.push({ x: 100, y: yRandom });
-                svgContainer.select("#mainLine").attr("d", lineFunction(lineData));
+                var randomAccessPoint = Math.floor(Math.random() * lineData.length);
+                lineData[randomAccessPoint].y += 5;
+                yMax = d3.max(lineData, function (d) { return d.y });
+                yAxisScale = d3.scale.linear().range([(height-padding), padding]).domain([0, yMax]);
+                yAxis = d3.svg.axis().orient('left').scale(yAxisScale);
+                svgContainer.selectAll('.mainBars')
+                                .data(lineData)
+                                .transition()
+                                .duration(refreshRateMs)
+                                .attr('y', function (d) { return yAxisScale(d.y); } )
+                                .attr('height', function (d) { return ((height-padding)-yAxisScale(d.y)); } );
+                svgContainer.select('.yaxis').call(yAxis);
                 stopTimer();
                 startTimer();
 
             };
 
-            repaint();
+             repaint();
 
 
             //events
