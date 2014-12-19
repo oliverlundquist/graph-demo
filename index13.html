@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script type="text/javascript" src="d3.v3.min.js"></script>
+  </head>
+  <body>
+
+
+    <script>
+       //var xAxis = d3.svg.axis();
+       //var axisScale = d3.scale.linear().domain([0, 100]).range([0, 100]);
+       //var xAxis = d3.svg.axis().scale(axisScale);
+
+       var svgContainer = d3.select("body").append("svg")
+                                           .attr("width", 1000)
+                                           .attr("height", 1000);
+
+       var axisScale = d3.scale.linear()
+                               .domain([0, 100])
+                               .range([0, 400]);
+
+        var yAxisScale = d3.scale.linear()
+                              .domain([0, 100])
+                              .range([400,0]);
+
+        var xAxis = d3.svg.axis().scale(axisScale);
+
+        var xAxisGroup = svgContainer.append("g")
+                            .attr("transform", "translate(30, 400)")
+                            .attr("class", "axis")
+                            .call(xAxis);
+
+        var yAxis = d3.svg.axis().scale(yAxisScale).orient("left").ticks(5);
+
+        var yAxisGroup = svgContainer.append("g")
+                            .attr("class", "axis")
+                            .attr("transform", "translate(30, 0)")
+                            .call(yAxis);
+        //
+    </script>
+    <style>
+      .axis path,
+      .axis line {
+          fill: none;
+          stroke: black;
+          shape-rendering: crispEdges;
+      }
+
+      .axis text {
+          font-family: sans-serif;
+          font-size: 11px;
+      }
+      text {
+          fill: olive;
+      }
+    </style>
+
+  </body>
+</html>
